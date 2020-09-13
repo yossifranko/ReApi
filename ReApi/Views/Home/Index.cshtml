@@ -1,0 +1,92 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div style="text-align:center"; ng-app="myApp" ng-controller="indexController">
+
+    <div class="row m-t-2">
+        <div class="col-lg-10 center-block">
+            <div class="input-group">
+                <input type="text" ng-model="searchKey" class="form-control" placeholder="Search for..." ng-keyup="$event.keyCode == 13 ? getResults(searchKey) : null">
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-primary" ng-click="getResults(searchKey)" style="color: blue;">Go!</button>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-success m-t-2" role="alert" ng-if="showAddedMsg">{{itemAddedMsg}}</div>
+    <div class="alert alert-danger m-t-2" role="alert" ng-if="error">{{error}}</div>
+    <div class="alert alert-info m-t-2" role="alert" ng-if="notFound">{{notFound}}</div>
+
+    <div class="row m-t-5" ng-if="response.items.length">
+        <div class="col-sm-4 col-md-4" ng-repeat="item in response.items">
+            <div class="thumbnail">
+                <img ng-src="{{item.owner.avatar_url}}" alt="avatar_url" width="200" height="100">
+                <div class="caption">
+                    <h3>{{item.name}}</h3>
+                    <p>...</p>
+                    <p><button ng-click="setBookmark(item)" class="btn btn-primary" role="button">Bookremrk</button> <a href="{{item.html_url}}" class="btn btn-default" role="button"> Go to repoditory</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section scripts {
+
+    <script>
+        var app = angular.module('myApp', []);
+        app.controller('indexController', function ($scope, $http, $timeout) {
+            var vm = $scope;
+            vm.searchKey = '';
+            vm.itemAddedMsg = null;
+
+            vm.getResults = function (searchKey) {
+                vm.error = null;
+                vm.showAddedMsg = false;
+                if (searchKey == '' || searchKey == null || searchKey.lenght <= 0) {
+                    vm.error = "no search key was provided";
+                    return;
+                }
+                vm.searchKey = searchKey;
+                $http.get('https://api.github.com/search/repositories?q=' + searchKey)
+                    .then(function (response) {
+                        vm.response = response.data;
+                        if (vm.response.total_count <= 0 || vm.response == null) {
+                            vm.notFound = "No items founded"
+                        }
+                        console.log(vm.response.items);
+                    }, function (response) {
+                        vm.error = "Something went wrong";
+                    });
+            }
+
+            vm.setBookmark = function (item) {
+                vm.itemAddedMsg = "This repository was successfully added";
+                vm.showAddedMsg = true;
+                var bookmark = {
+                    id: item.id,
+                    name: item.name,
+                    avatarUrl: item.owner.avatar_url,
+                    url: item.html_url
+                };
+                $http.post("Home/Bookmark", JSON.stringify(bookmark))
+                    .then(function (response) {
+                        vm.sucsses = response.data;
+                        $timeout(function () {
+                            vm.getResults(vm.searchKey);
+                        }, 1000);
+                     
+                    }, function (response) {
+                        vm.error = "Something went wrong";
+                    });
+
+            }
+
+        });
+    </script>
+
+
+}

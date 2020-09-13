@@ -1,0 +1,48 @@
+﻿@model List<Bookmark>
+@{
+    ViewData["Title"] = "My Bookmarks";
+
+}
+
+<div style="text-align:center"; ng-app="myApp" ng-controller="bookmarksController" ng-init="init(@Model.ToJson())">
+
+    <div class="row m-t-2">
+        <div class="col-lg-10 center-block">
+            <h3>My bookmarks repositories</h3>
+        </div>
+    </div>
+
+    <div class="alert alert-info m-t-2" role="alert" ng-if="notFound">{{notFound}}</div>
+
+    <div class="row m-t-5" ng-if="items.length">
+        <div class="col-sm-4 col-md-4" ng-repeat="item in items">
+            <div class="thumbnail">
+                <img ng-src="{{item.avatarUrl}}" alt="avatar_url" width="200" height="100">
+                <div class="caption">
+                    <h3>{{item.Name}}</h3>
+                    <p><a href="{{item.Url}}" class="btn btn-default" role="button"> Go to repoditory</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section scripts {
+
+    <script>
+        var app = angular.module('myApp', []);
+        app.controller('bookmarksController', function ($scope, $http) {
+            var vm = $scope;
+
+            vm.init = function (items) {
+                vm.items = items;
+                if (vm.items == null) {
+                    vm.notFound = "no items in the list";
+                }
+            }
+        });
+    </script>
+
+
+}
